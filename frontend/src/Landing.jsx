@@ -5,16 +5,16 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
   return (
     <div className="landing-container" style={{ width: '100vw', background: 'var(--bg-primary)', overflowY: 'auto', minHeight: '100vh', color: 'white' }}>
       {/* Navbar */}
-      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '24px 48px', alignItems: 'center', borderBottom: '1px solid var(--glass-border)' }}>
+      <nav className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', padding: '24px 48px', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className="brand-icon"><TrendingUp size={24} /></div>
-          <span className="brand-text" style={{ fontSize: '1.5rem' }}>TradeMind AI</span>
+          <div className="brand-icon neon-border-blue"><TrendingUp size={24} /></div>
+          <span className="brand-text neon-text-blue" style={{ fontSize: '1.5rem', fontWeight: 800 }}>TradeMind AI</span>
         </div>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <a href="#features" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 500 }}>Özellikler</a>
-          <a href="#integration" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 500 }}>Entegrasyon</a>
-          <a href="#pricing" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 500 }}>Fiyatlandırma</a>
-          <button onClick={onLogin} style={{ background: 'var(--accent-blue)', color: 'white', padding: '10px 24px', borderRadius: 'var(--radius-sm)', border: 'none', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a href="#features" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Özellikler</a>
+          <a href="#integration" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Entegrasyon</a>
+          <a href="#pricing" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Fiyatlandırma</a>
+          <button onClick={onLogin} className="neon-border-blue" style={{ background: 'var(--accent-blue)', color: 'white', padding: '10px 24px', borderRadius: 'var(--radius-sm)', border: 'none', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.3s' }}>
             Panele Giriş <ArrowRight size={18} />
           </button>
         </div>
@@ -29,10 +29,10 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
           Dünya çapındaki arbitraj fırsatlarını keşfedin, tedarik zincirinizi otonom yönetin ve yapay zeka kararlarıyla kârlılığınızı roketleyin. B2B ve E-ticaret için tasarlandı.
         </p>
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '16px' }}>
-          <button onClick={onLogin} style={{ background: 'var(--text-main)', color: 'var(--bg-primary)', padding: '14px 32px', borderRadius: 'var(--radius-sm)', border: 'none', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
+          <button onClick={onLogin} className="neon-border-purple" style={{ background: 'white', color: 'black', padding: '14px 32px', borderRadius: 'var(--radius-md)', border: 'none', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.3s' }}>
             Hemen Başlayın
           </button>
-          <button style={{ background: 'transparent', color: 'var(--text-main)', padding: '14px 32px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--text-main)', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
+          <button className="glass-panel" style={{ color: 'white', padding: '14px 32px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.3s' }}>
             Demoyu İncele
           </button>
         </div>
@@ -45,18 +45,18 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
           Karmaşık kodlamalara ve aylarca süren IT entegrasyonlarına son. TradeMind AI, modern OAuth ve Webhook mimarileriyle sisteminize hemen adapte olur.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
-          <div style={{ background: 'var(--bg-tertiary)', padding: '32px', borderRadius: 'var(--radius-md)', width: '300px', textAlign: 'left' }}>
-            <Globe size={32} color="var(--accent-blue)" style={{ marginBottom: '16px' }} />
+          <div className="glass-panel" style={{ padding: '32px', borderRadius: 'var(--radius-lg)', width: '300px', textAlign: 'left', transition: 'all 0.3s' }}>
+            <Globe size={32} className="neon-text-blue" style={{ marginBottom: '16px' }} />
             <h3 style={{ marginBottom: '12px' }}>1-Tık Pazar Yeri API'si</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Amazon, Shopify, ETSY gibi pazar yeri mağazalarınızı sadece giriş yaparak onaylayın. Veriler otonom olarak senkronize edilir.</p>
           </div>
-          <div style={{ background: 'var(--bg-tertiary)', padding: '32px', borderRadius: 'var(--radius-md)', width: '300px', textAlign: 'left' }}>
-            <Database size={32} color="var(--accent-purple)" style={{ marginBottom: '16px' }} />
+          <div className="glass-panel" style={{ padding: '32px', borderRadius: 'var(--radius-lg)', width: '300px', textAlign: 'left', transition: 'all 0.3s' }}>
+            <Database size={32} className="neon-text-purple" style={{ marginBottom: '16px' }} />
             <h3 style={{ marginBottom: '12px' }}>ERP Webhook & REST API</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>SAP, Odoo veya kendi yazılımınıza REST API anahtarı veya asenkron Webhooklar ile anlık nakit ve stok aktarın.</p>
           </div>
-          <div style={{ background: 'var(--bg-tertiary)', padding: '32px', borderRadius: 'var(--radius-md)', width: '300px', textAlign: 'left' }}>
-            <Zap size={32} color="var(--accent-green)" style={{ marginBottom: '16px' }} />
+          <div className="glass-panel" style={{ padding: '32px', borderRadius: 'var(--radius-lg)', width: '300px', textAlign: 'left', transition: 'all 0.3s' }}>
+            <Zap size={32} className="neon-text-green" style={{ marginBottom: '16px' }} />
             <h3 style={{ marginBottom: '12px' }}>CSV / Excel Yükleme</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Eski nesil sistemler kullanıyorsanız, akıllı veritabanı eşleştiricisine CSV atın. Formattaki hataları yapay zeka onarsın.</p>
           </div>

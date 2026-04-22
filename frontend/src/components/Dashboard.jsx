@@ -66,36 +66,36 @@ const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        <div className="stat-card">
+        <div className="stat-card glass-panel" style={{ borderLeft: '4px solid var(--neon-blue)', boxShadow: 'var(--glow-blue)' }}>
           <div className="stat-header">
             <span>Toplam Gelir</span>
-            <DollarSign size={20} className="stat-icon" />
+            <DollarSign size={20} className="stat-icon neon-text-blue" />
           </div>
-          <div className="stat-value">$124,500</div>
+          <div className="stat-value neon-text-blue">$124,500</div>
           <div className="stat-footer">
             <span className="trend-up">+12.5%</span> 
             <span style={{color: 'var(--text-muted)'}}>Geçen aya göre</span>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card glass-panel" style={{ borderLeft: '4px solid var(--neon-purple)', boxShadow: 'var(--glow-purple)' }}>
           <div className="stat-header">
             <span>Stok Maliyeti</span>
-            <Package size={20} className="stat-icon" />
+            <Package size={20} className="stat-icon neon-text-purple" />
           </div>
-          <div className="stat-value">$45,200</div>
+          <div className="stat-value neon-text-purple">$45,200</div>
           <div className="stat-footer">
             <span className="trend-down">-2.4%</span> 
             <span style={{color: 'var(--text-muted)'}}>Depo optimizasyonu</span>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card glass-panel" style={{ borderLeft: '4px solid var(--neon-green)', boxShadow: 'var(--glow-green)' }}>
           <div className="stat-header">
             <span>KPI Hedeflenen</span>
-            <TrendingUp size={20} className="stat-icon" />
+            <TrendingUp size={20} className="stat-icon neon-text-green" />
           </div>
-          <div className="stat-value">84%</div>
+          <div className="stat-value neon-text-green">84%</div>
           <div className="stat-footer">
             <span className="trend-up">+5.2%</span> 
             <span style={{color: 'var(--text-muted)'}}>WTO Ortalama Üstü</span>
@@ -105,9 +105,9 @@ const Dashboard = () => {
 
       {/* AI Insights & Charts */}
       <div className="dashboard-grid">
-        <div className="panel">
-          <div className="panel-title">
-            <Activity className="text-secondary" size={20} />
+        <div className="panel glass-panel">
+          <div className="panel-title neon-text-blue">
+            <Activity className="neon-text-blue" size={20} />
             Nakit Akışı (Cash Flow) Tahmini
             {loading && <span style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', marginLeft: '12px' }}>Yükleniyor...</span>}
           </div>
@@ -135,9 +135,9 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="panel" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="panel-title">
-            <Sparkles size={20} />
+        <div className="panel glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="panel-title neon-text-purple">
+            <Sparkles className="neon-text-purple" size={20} />
             TradeMind AI Karar Notları
           </div>
           

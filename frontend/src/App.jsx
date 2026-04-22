@@ -12,6 +12,7 @@ import Arbitrage from './components/Arbitrage';
 import Settings from './components/Settings';
 import LegalShield from './components/LegalShield';
 import CrisisSimulator from './components/CrisisSimulator';
+import Trends from './components/Trends';
 
 function App() {
   const [viewState, setViewState] = useState('landing'); // 'landing', 'auth', 'app'
@@ -51,6 +52,7 @@ function App() {
           </div>
         )}
         {activeMenu === 'green' && <GreenTrade />}
+        {activeMenu === 'trends' && <Trends />}
         {activeMenu === 'arbitrage' && <Arbitrage />}
         {activeMenu === 'settings' && <Settings />}
       </div>

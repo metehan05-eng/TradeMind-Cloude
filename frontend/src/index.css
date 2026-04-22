@@ -12,14 +12,22 @@
   --text-muted: #9ca3af;
   --border-color: #2dd4bf22;
   
-  --glass-bg: rgba(18, 24, 38, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-bg: rgba(18, 24, 38, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  
+  --neon-blue: #00f2ff;
+  --neon-purple: #bc13fe;
+  --neon-green: #39ff14;
+  
+  --glow-blue: 0 0 15px rgba(0, 242, 255, 0.4);
+  --glow-purple: 0 0 15px rgba(188, 19, 254, 0.4);
+  --glow-green: 0 0 15px rgba(57, 255, 20, 0.4);
   
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
 }
 
 * {
@@ -141,14 +149,32 @@ body {
   height: 20px;
 }
 
-/* Main Content area */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
   position: relative;
 }
+
+.glass-panel {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+.neon-border-blue { border: 1px solid var(--neon-blue) !important; box-shadow: var(--glow-blue) !important; }
+.neon-border-purple { border: 1px solid var(--neon-purple) !important; box-shadow: var(--glow-purple) !important; }
+.neon-border-green { border: 1px solid var(--neon-green) !important; box-shadow: var(--glow-green) !important; }
+
+.neon-text-blue { color: var(--neon-blue) !important; text-shadow: var(--glow-blue) !important; }
+.neon-text-purple { color: var(--neon-purple) !important; text-shadow: var(--glow-purple) !important; }
+.neon-text-green { color: var(--neon-green) !important; text-shadow: var(--glow-green) !important; }
 
 /* Top Navigation */
 .topnav {

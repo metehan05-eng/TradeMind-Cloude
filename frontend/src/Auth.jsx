@@ -59,9 +59,9 @@ const Auth = ({ onLoginSuccess }) => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
+      <div className="auth-card glass-panel" style={{ border: '1px solid rgba(59, 130, 246, 0.2)' }}>
         <div className="auth-header">
-          <div className="brand-icon" style={{ margin: '0 auto 16px auto' }}>
+          <div className="brand-icon neon-border-blue" style={{ margin: '0 auto 16px auto' }}>
             <TrendingUp size={24} />
           </div>
           <h2 style={{ marginBottom: '8px' }}>TradeMind AI</h2>
@@ -105,7 +105,7 @@ const Auth = ({ onLoginSuccess }) => {
                 </div>
               )}
 
-              <button type="submit" className="auth-btn" disabled={loading}>
+              <button type="submit" className="auth-btn neon-border-blue" disabled={loading} style={{ border: 'none' }}>
                 {loading ? 'Sistem Doğrulanıyor...' : 'Merkez Panele Bağlan'} <ArrowRight size={18} />
               </button>
             </form>
