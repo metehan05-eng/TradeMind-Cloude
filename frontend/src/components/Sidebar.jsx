@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Package, TrendingUp, DollarSign, Scale, Ship, Leaf, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Package, TrendingUp, DollarSign, Scale, Ship, Leaf, Settings as SettingsIcon, Bitcoin } from 'lucide-react';
 
 const Sidebar = ({ activeMenu, setActiveMenu }) => {
   const menuItems = [
@@ -7,6 +7,7 @@ const Sidebar = ({ activeMenu, setActiveMenu }) => {
     { id: 'crisis', label: 'Kriz Simülatörü', icon: <Package /> },
     { id: 'finance', label: 'Finans', icon: <DollarSign /> },
     { id: 'trends', label: 'E-Ticaret Trendleri', icon: <TrendingUp /> },
+    { id: 'crypto', label: 'Kripto AI', icon: <Bitcoin /> },
     { id: 'legal', label: 'Hukuk Kalkanı', icon: <Scale /> },
     { id: 'arbitrage', label: 'Arbitraj Dedektörü', icon: <Ship /> },
     { id: 'green', label: 'Yeşil Ticaret', icon: <Leaf /> },
