@@ -404,6 +404,7 @@ body {
 }
 .badge.action { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
 .badge.success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.badge.alert { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 
 /* Chatbot UI */
 .chatbot-container {
@@ -676,4 +677,109 @@ body {
   transition: all 0.2s;
 }
 .btn-reject:hover { background: rgba(239, 68, 68, 0.3); }
+
+/* Finance Page Specific */
+.finance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 8px 0;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-weight: 500;
+}
+
+.legend-value {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.health-metric {
+  margin-bottom: 20px;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.metric-value.good {
+  color: var(--accent-green);
+}
+
+.metric-value.warning {
+  color: #f59e0b;
+}
+
+.metric-value.danger {
+  color: #ef4444;
+}
+
+.metric-bar {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease;
+}
+
+.metric-bar-fill.good {
+  background: linear-gradient(90deg, var(--accent-green), #34d399);
+}
+
+.metric-bar-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.metric-bar-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.metric-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.metric-desc {
+  color: var(--text-muted);
+}
+
+.metric-status {
+  font-weight: 600;
+  color: var(--accent-green);
+}
 

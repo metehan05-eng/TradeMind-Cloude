@@ -14,6 +14,7 @@ import LegalShield from './components/LegalShield';
 import CrisisSimulator from './components/CrisisSimulator';
 import Trends from './components/Trends';
 import Crypto from './components/Crypto';
+import Finance from './components/Finance';
 
 function App() {
   const [viewState, setViewState] = useState('landing'); // 'landing', 'auth', 'app'
@@ -44,14 +45,7 @@ function App() {
         {/* Placeholder components for other menus */}
         {activeMenu === 'crisis' && <CrisisSimulator />}
         {activeMenu === 'legal' && <LegalShield />}
-        {activeMenu === 'finance' && (
-          <div className="dashboard-container">
-            <div className="dashboard-header">
-              <h1>Finans & Nakit Akışı</h1>
-              <p>Harcama, gelir dengesi ve vergi optimizasyonu.</p>
-            </div>
-          </div>
-        )}
+        {activeMenu === 'finance' && <Finance />}
         {activeMenu === 'green' && <GreenTrade />}
         {activeMenu === 'trends' && <Trends />}
         {activeMenu === 'crypto' && <Crypto />}
