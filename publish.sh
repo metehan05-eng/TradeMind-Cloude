@@ -12,13 +12,13 @@ fi
 # Remoteları kontrol et, origin yoksa ekle
 if ! git remote | grep -q "origin"; then
     echo "🔗 Uzak sunucu (remote) ekleniyor..."
-    git remote add origin https://github.com/metehan05-eng/TradeMind-Cloude.git
+    git remote add origin git@github.com:metehan05-eng/TradeMind-Cloude.git
 else
     # Eğer origin varsa URLsine bak, yanlışsa düzelt
     current_remote=$(git remote get-url origin)
-    if [ "$current_remote" != "https://github.com/metehan05-eng/TradeMind-Cloude.git" ]; then
+    if [ "$current_remote" != "git@github.com:metehan05-eng/TradeMind-Cloude.git" ]; then
         echo "🔄 Remote URL güncelleniyor..."
-        git remote set-url origin https://github.com/metehan05-eng/TradeMind-Cloude.git
+        git remote set-url origin git@github.com:metehan05-eng/TradeMind-Cloude.git
     fi
 fi
 
