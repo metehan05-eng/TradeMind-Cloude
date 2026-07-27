@@ -7,14 +7,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-const ALPHA_VANTAGE_API = 'https://www.alphavantage.co/query';
+const nameMap = {
+  'BTC-USD': { symbol: 'BTC', name: 'Bitcoin' },
+  'ETH-USD': { symbol: 'ETH', name: 'Ethereum' },
+  'SOL-USD': { symbol: 'SOL', name: 'Solana' },
+  'BNB-USD': { symbol: 'BNB', name: 'BNB' },
+  'XRP-USD': { symbol: 'XRP', name: 'Ripple' },
+  'ADA-USD': { symbol: 'ADA', name: 'Cardano' },
+  'DOGE-USD': { symbol: 'DOGE', name: 'Dogecoin' },
+  'DOT-USD': { symbol: 'DOT', name: 'Polkadot' },
+  'AVAX-USD': { symbol: 'AVAX', name: 'Avalanche' },
+  'LINK-USD': { symbol: 'LINK', name: 'Chainlink' },
+  'MATIC-USD': { symbol: 'MATIC', name: 'Polygon' },
+  'NEAR-USD': { symbol: 'NEAR', name: 'NEAR Protocol' }
+};
 
 const generateMockForSymbol = (symbol, name) => {
   const basePrice = Math.random() * 1000 + 10;
   return {
-    symbol,
+    symbol: symbol.replace('-USD', ''),
     name,
     price: basePrice,
     change24h: (Math.random() * 10) - 5,
@@ -22,75 +35,73 @@ const generateMockForSymbol = (symbol, name) => {
     high24h: basePrice * 1.05,
     low24h: basePrice * 0.95,
     volume: Math.floor(Math.random() * 10000000),
-    description: `Alpha Vantage API limit. Geçici mock verisidir.`
+    description: `Geçici mock verisidir.`
   };
 };
 
-const fetchCryptoData = async (symbol) => {
-  const nameMap = {
-    'BTC': 'Bitcoin', 'ETH': 'Ethereum', 'BNB': 'BNB', 'XRP': 'Ripple',
-    'ADA': 'Cardano', 'DOGE': 'Dogecoin', 'SOL': 'Solana', 'DOT': 'Polkadot',
-    'MATIC': 'Polygon', 'AVAX': 'Avalanche', 'LINK': 'Chainlink', 'ATOM': 'Cosmos',
-    'UNI': 'Uniswap', 'LTC': 'Litecoin', 'NEAR': 'NEAR Protocol'
-  };
-  
-  const cryptoName = nameMap[symbol] || symbol;
+const fetchYahooCryptoData = async (ticker) => {
+  const info = nameMap[ticker] || { symbol: ticker.replace('-USD', ''), name: ticker };
   
   try {
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY || 'demo';
-    const url = `${ALPHA_VANTAGE_API}?function=DIGITAL_CURRENCY_DAILY&symbol=${symbol}&market=USD&apikey=${apiKey}`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1mo`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
     
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    // Alpha Vantage limitine (dakikada 5 istek falan) takılırsa yakala
-    if (data.Information || data.Note || !data['Time Series (Digital Currency Daily)']) {
-      console.warn(`Alpha Vantage API limiti/hatası (${symbol}):`, data.Information || data.Note || 'Bilinmeyen Hata');
-      return generateMockForSymbol(symbol, cryptoName);
+    if (!res.ok) {
+      throw new Error(`Yahoo Finance HTTP ${res.status}`);
     }
     
-    const timeSeries = data['Time Series (Digital Currency Daily)'];
-    const dates = Object.keys(timeSeries);
+    const data = await res.json();
+    if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+      return generateMockForSymbol(info.symbol, info.name);
+    }
     
-    if (dates.length < 2) return generateMockForSymbol(symbol, cryptoName);
+    const result = data.chart.result[0];
+    const meta = result.meta;
+    const currentPrice = meta.regularMarketPrice || 0;
+    const previousClose = meta.chartPreviousClose || currentPrice;
+    const change24h = previousClose ? ((currentPrice - previousClose) / previousClose) * 100 : 0;
+    const high24h = meta.regularMarketDayHigh || currentPrice * 1.02;
+    const low24h = meta.regularMarketDayLow || currentPrice * 0.98;
+    const volume = meta.regularMarketVolume || 0;
     
-    const latestDate = dates[0];
-    const previousDate = dates[1];
-    
-    const currentPrice = parseFloat(timeSeries[latestDate]['4a. close (USD)']);
-    const previousClose = parseFloat(timeSeries[previousDate]['4a. close (USD)']);
-    const high24h = parseFloat(timeSeries[latestDate]['2a. high (USD)']);
-    const low24h = parseFloat(timeSeries[latestDate]['3a. low (USD)']);
-    const volume = parseFloat(timeSeries[latestDate]['5. volume']);
-    
-    const change24h = ((currentPrice - previousClose) / previousClose) * 100;
-    
+    const rawCloses = result.indicators?.quote[0]?.close || [];
+    const prices = rawCloses.filter(p => p !== null && !isNaN(p) && p > 0);
+
     return {
-      symbol,
-      name: cryptoName,
+      symbol: info.symbol,
+      ticker,
+      name: info.name,
       price: currentPrice,
       change24h: isNaN(change24h) ? 0 : change24h,
-      marketCap: 0, // Günlük verilere dahil gelmiyor
-      high24h: high24h || currentPrice * 1.02,
-      low24h: low24h || currentPrice * 0.98,
-      volume: volume || 0,
-      description: `${cryptoName} Alpha Vantage üzerinden çekilen günlük veriler.`
+      marketCap: (currentPrice * (volume || 1000000)) / 1e7,
+      high24h,
+      low24h,
+      volume,
+      prices: prices.length > 0 ? prices : [currentPrice],
+      source: 'Yahoo Finance Live'
     };
   } catch (err) {
-    console.error(`Error fetching ${symbol}:`, err.message);
-    return generateMockForSymbol(symbol, cryptoName);
+    console.error(`Error fetching ${ticker} from Yahoo Finance:`, err.message);
+    return generateMockForSymbol(info.symbol, info.name);
   }
 };
 
 const calculateTechnicalIndicators = (prices) => {
-  if (prices.length < 20) return null;
+  if (!prices || prices.length < 5) {
+    return {
+      sma20: 0, sma50: 0, rsi: 50, macd: 0, trend: 'Nötr', signal: 'BEKLE', confidence: 'Orta'
+    };
+  }
   
-  const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / 20;
-  const sma50 = prices.length >= 50 
-    ? prices.slice(-50).reduce((a, b) => a + b, 0) / 50 
-    : sma20;
+  const len = prices.length;
+  const sma20 = prices.slice(Math.max(0, len - 20)).reduce((a, b) => a + b, 0) / Math.min(len, 20);
+  const sma50 = prices.reduce((a, b) => a + b, 0) / len;
   
-  const recentPrices = prices.slice(-14);
+  const recentPrices = prices.slice(Math.max(0, len - 14));
   let gains = 0, losses = 0;
   for (let i = 1; i < recentPrices.length; i++) {
     const change = recentPrices[i] - recentPrices[i-1];
@@ -98,34 +109,32 @@ const calculateTechnicalIndicators = (prices) => {
     else losses += Math.abs(change);
   }
   
-  const avgGain = gains / 14;
-  const avgLoss = losses / 14;
-  const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-  const rsi = 100 - (100 / (1 + rs));
+  const avgGain = gains / 14 || 0.001;
+  const avgLoss = losses / 14 || 0.001;
+  const rs = avgGain / avgLoss;
+  const rsi = Math.min(100, Math.max(0, 100 - (100 / (1 + rs))));
   
-  const recent = prices.slice(-12);
-  const ema12 = recent.reduce((a, b) => a + b, 0) / 12;
-  
-  const signal = prices.slice(-26, -12).reduce((a, b) => a + b, 0) / 12;
-  const macd = ema12 - signal;
+  const recent12 = prices.slice(Math.max(0, len - 12));
+  const ema12 = recent12.reduce((a, b) => a + b, 0) / recent12.length;
+  const macd = ema12 - sma20;
   
   let trend = 'Nötr';
-  if (sma20 > sma50 * 1.02) trend = 'Yükseliş';
-  else if (sma20 < sma50 * 0.98) trend = 'Düşüş';
+  if (sma20 > sma50 * 1.01) trend = 'Yükseliş';
+  else if (sma20 < sma50 * 0.99) trend = 'Düşüş';
   
   let signal_ml = 'BEKLE';
-  if (rsi < 30 && trend === 'Yükseliş') signal_ml = 'AL';
-  else if (rsi > 70 && trend === 'Düşüş') signal_ml = 'SAT';
-  else if (rsi > 30 && rsi < 50 && trend === 'Yükseliş') signal_ml = 'AL';
+  if (rsi < 35 && trend === 'Yükseliş') signal_ml = 'GÜÇLÜ AL';
+  else if (rsi < 45) signal_ml = 'AL';
+  else if (rsi > 68) signal_ml = 'SAT';
   
   return {
     sma20: Math.round(sma20 * 100) / 100,
     sma50: Math.round(sma50 * 100) / 100,
-    rsi: Math.round(rsi * 100) / 100,
+    rsi: Math.round(rsi * 10) / 10,
     macd: Math.round(macd * 100) / 100,
     trend,
     signal: signal_ml,
-    confidence: Math.abs(rsi - 50) < 20 ? 'Düşük' : Math.abs(rsi - 50) < 40 ? 'Orta' : 'Yüksek'
+    confidence: Math.abs(rsi - 50) < 15 ? 'Düşük' : Math.abs(rsi - 50) < 35 ? 'Orta' : 'Yüksek'
   };
 };
 
@@ -133,134 +142,116 @@ const predictionModel = (data, indicators) => {
   let score = 0;
   let reasons = [];
   
-  if (indicators.rsi < 30) {
-    score += 30;
-    reasons.push('RSI aşırı satım bölgesinde');
+  if (indicators.rsi < 35) {
+    score += 35;
+    reasons.push('RSI aşırı satım bölgesinde (fırsat)');
   } else if (indicators.rsi > 70) {
-    score -= 20;
-    reasons.push('RSI aşırı alım bölgesinde');
+    score -= 30;
+    reasons.push('RSI aşırı alım bölgesinde (düzeltme riski)');
   }
   
   if (indicators.trend === 'Yükseliş') {
     score += 25;
-    reasons.push('Trend yükselişte');
+    reasons.push('Ana trend pozitif yükselişte');
   } else if (indicators.trend === 'Düşüş') {
     score -= 25;
-    reasons.push('Trend düşüşte');
+    reasons.push('Trend aşağı yönlü hareket ediyor');
   }
   
-  if (data.change24h > 5) {
-    score += 15;
-    reasons.push('Son 24s güçlü yükseliş');
-  } else if (data.change24h < -5) {
-    score -= 15;
-    reasons.push('Son 24s güçlü düşüş');
+  if (data.change24h > 3) {
+    score += 20;
+    reasons.push('24 saatlik güçlü ivme (+%' + data.change24h.toFixed(1) + ')');
+  } else if (data.change24h < -3) {
+    score -= 20;
+    reasons.push('24 saatlik satış baskısı (%' + data.change24h.toFixed(1) + ')');
   }
   
   if (indicators.macd > 0) {
     score += 10;
-    reasons.push('MACD pozitif');
+    reasons.push('MACD göstergesi pozitif bölgede');
   }
   
-  if (data.marketCap < 50) {
-    score += 10;
-    reasons.push('Düşük piyasa değeri - yüksek potansiyel');
-  }
-  
-  let prediction = 'Nötr';
+  let prediction = 'NÖTR';
   if (score > 30) prediction = 'GÜÇLÜ AL';
-  else if (score > 15) prediction = 'AL';
+  else if (score > 10) prediction = 'AL';
   else if (score < -15) prediction = 'SAT';
   
   return {
     score,
     prediction,
-    reasons: reasons.slice(0, 4)
+    reasons: reasons.slice(0, 3)
   };
 };
 
 app.get('/api/crypto/market', async (req, res) => {
   try {
-    const symbols = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK', 'ATOM', 'UNI', 'LTC', 'NEAR'];
+    const tickers = Object.keys(nameMap);
+    const rawList = await Promise.all(tickers.map(t => fetchYahooCryptoData(t)));
     
-    const cryptoData = await Promise.all(
-      symbols.map(s => fetchCryptoData(s))
-    );
-    
-    const validData = cryptoData.filter(d => d !== null);
-    
-    const enrichedData = validData.map(crypto => {
-      const prices = Array(50).fill(crypto.price).map((p, i) => p * (1 + (Math.random() - 0.5) * 0.1 * (i/50)));
-      const indicators = calculateTechnicalIndicators(prices);
-      
-      if (!indicators) {
-        return { ...crypto, indicators: null, prediction: null };
-      }
-      
+    const enrichedData = rawList.map(crypto => {
+      const indicators = calculateTechnicalIndicators(crypto.prices);
       const prediction = predictionModel(crypto, indicators);
       
+      const { prices, ...rest } = crypto;
       return {
-        ...crypto,
+        ...rest,
         indicators,
         prediction
       };
     });
     
-    enrichedData.sort((a, b) => {
-      const scoreA = a.prediction?.score || 0;
-      const scoreB = b.prediction?.score || 0;
-      return scoreB - scoreA;
-    });
-    
+    enrichedData.sort((a, b) => (b.prediction?.score || 0) - (a.prediction?.score || 0));
     res.json(enrichedData);
   } catch (err) {
-    console.error('Market error:', err);
-    res.status(500).json({ error: 'Failed to fetch crypto market data' });
+    console.error('Yahoo Finance Market error:', err);
+    res.status(500).json({ error: 'Failed to fetch Yahoo Finance market data' });
   }
 });
 
 app.get('/api/crypto/analyze/:symbol', async (req, res) => {
   try {
-    const { symbol } = req.params;
-    const crypto = await fetchCryptoData(symbol);
+    const symbolParam = req.params.symbol.toUpperCase();
+    const ticker = symbolParam.includes('-USD') ? symbolParam : `${symbolParam}-USD`;
     
-    if (!crypto) {
-      return res.status(404).json({ error: 'Cryptocurrency not found' });
-    }
-    
-    const prices = Array(50).fill(crypto.price).map((p, i) => p * (1 + (Math.random() - 0.5) * 0.1 * (i/50)));
-    const indicators = calculateTechnicalIndicators(prices);
+    const crypto = await fetchYahooCryptoData(ticker);
+    const indicators = calculateTechnicalIndicators(crypto.prices);
     const prediction = predictionModel(crypto, indicators);
     
     let aiInsight = '';
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      const prompt = `${crypto.name} (${symbol}) için kısa bir teknik analiz yorumu yap. 
-        Fiyat: $${crypto.price}, 24s Değişim: ${crypto.change24h}%
-        RSI: ${indicators.rsi}, Trend: ${indicators.trend}
-        Önerilen işlem: ${prediction.prediction}
-        Kısaca ve profesyonel yaz.`;
-      
-      const result = await model.generateContent(prompt);
-      aiInsight = result.response.text();
+      if (process.env.GEMINI_API_KEY) {
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const prompt = `${crypto.name} (${crypto.symbol}) için Yahoo Finance verilerine göre canlı piyasa analizi yap.
+          Fiyat: $${crypto.price}, 24s Değişim: ${crypto.change24h.toFixed(2)}%
+          RSI: ${indicators.rsi}, Trend: ${indicators.trend}
+          AI Tahmini: ${prediction.prediction}
+          Kısa, 2 cümlelik profesyonel ticari tavsiye ve teknik analiz yorumu sun.`;
+        
+        const result = await model.generateContent(prompt);
+        aiInsight = result.response.text();
+      }
     } catch (aiErr) {
       console.warn('Gemini API error:', aiErr.message);
-      aiInsight = `${crypto.name} için teknik göstergeler ${indicators.trend} trendini işaret ediyor. RSI ${indicators.rsi} seviyesinde. ${prediction.prediction} sinyali mevcut.`;
     }
     
+    if (!aiInsight) {
+      aiInsight = `${crypto.name} (${crypto.symbol}) Yahoo Finance canlı verilerinde $${crypto.price} seviyesinde işlem görüyor. RSI indikatörü ${indicators.rsi} ile ${indicators.trend.toLowerCase()} trendini doğruluyor. Önerilen strateji: ${prediction.prediction}.`;
+    }
+    
+    const { prices, ...rest } = crypto;
     res.json({
-      ...crypto,
+      ...rest,
       indicators,
       prediction,
       aiInsight
     });
   } catch (err) {
     console.error('Analyze error:', err);
-    res.status(500).json({ error: 'Failed to analyze cryptocurrency' });
+    res.status(500).json({ error: 'Failed to analyze crypto token' });
   }
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Crypto API running on port ${PORT}`);
+  console.log(`TradeMind Crypto Yahoo Finance Service running on port ${PORT}`);
 });
