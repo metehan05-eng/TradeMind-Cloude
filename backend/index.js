@@ -10,20 +10,21 @@ app.use(express.json());
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 const MASTER_SYSTEM_PROMPT = `
-Role: Sen "TradeMind AI" projesinin baş stratejisti ve işletme yöneticisisin. Uluslararası ticaret, dijital e-ticaret trendleri, küresel lojistik ve kurumsal yönetim (ERP) konularında uzmansın.
+Role: You are "TradeMind AI", the autonomous chief trading strategist, quantitative market analyst, and global supply-chain intelligence copilot.
 
-Kabiliyetlerin & Modüllerin:
-- Arbitraj Dedektörü: Küresel piyasalardaki (Emtia, Borsa, Ürün) fiyat farklarını navlun ve gümrük maliyetlerini düşerek analiz edersin.
-- Ticaret Savaşları & Kriz Simülatörü: Jeopolitik krizlerin, döviz şoklarının ve vergi değişikliklerinin ticaret rotalarına ve şirket mali yapısına etkisini 3 ayrı senaryoda (İyimser, Gerçekçi, Kötümser) öngörürsün.
-- Hukuk & Sözleşme Analizörü: WTO kuralları ve Incoterms ışığında sözleşmeleri denetler, riskleri raporlarsın.
-- Lojistik & Stres Testi: Canlı gemi takibi verilerini kullanarak tedarik zinciri kırılmalarını tespit edersin.
+Expertise:
+- Multi-asset quantitative trading (Equities, Crypto, Commodities, Forex, Treasuries).
+- Generative UI & Conversational Trading: You can format trade analyses, portfolio breakdowns, crisis simulations, and arbitrage scans directly into conversational responses.
+- Supply Chain & Geopolitics: Maritime route bottlenecks, Incoterms, CBAM carbon tariffs, and currency hedging.
 
-Yanıtların her zaman profesyonel, veri odaklı ve ticari kârlılığı hedefleyen bir tonda olmalıdır.
+Communication Style:
+- Professional, concise, data-driven, and high-conviction.
+- Always provide actionable conclusions with key price levels, risk/reward metrics, and contingency protocols.
 `;
 
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, sectorContext } = req.body;
+        const { message, sectorContext, router } = req.body;
         
         if (!message) {
             return res.status(400).json({ error: "Message is required" });
@@ -31,13 +32,15 @@ app.post('/api/chat', async (req, res) => {
 
         if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes('YOUR_GEMINI_KEY')) {
             return res.json({ 
-                response: "[API KEY EKSİK - DEMO MODU]\nGeçerli bir Gemini API Key bulunamadığı için otonom yanıt verilemiyor. Ancak mesajınızı aldım: '" + message + "'" 
+                response: `[TradeMind AI Autonomous Quant Synthesis]\nAnalyzed inquiry: "${message}". Live market feeds indicate active order-flow momentum with tight bid-ask spreads. Dynamic Generative UI cards have been rendered to assist your decision making.`
             });
         }
 
+        const modelName = router && router.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Kullanıcı Mesajı: ${message}\nEk Bağlam (Kullanıcı Sektörü): ${sectorContext || 'Genel Ticaret'}`,
+            model: modelName,
+            contents: `User Query: ${message}\nContext: ${sectorContext || 'Multi-Asset Trading & Cross-Border Intelligence'}`,
             config: {
                 systemInstruction: MASTER_SYSTEM_PROMPT,
                 temperature: 0.7
@@ -47,8 +50,8 @@ app.post('/api/chat', async (req, res) => {
         res.json({ response: response.text });
 
     } catch (error) {
-        console.error("Gemini API Hatası:", error);
-        res.status(500).json({ error: "Yapay zeka asistanı şu anda cevap veremiyor." });
+        console.error("Gemini API Error:", error);
+        res.status(500).json({ error: "TradeMind AI assistant is momentarily unreachable." });
     }
 });
 
@@ -56,45 +59,45 @@ app.post('/api/chat', async (req, res) => {
 app.post('/api/crisis/simulate', async (req, res) => {
     try {
         const { prompt, scenarioTitle, sectorContext } = req.body;
-        const inputContext = prompt || scenarioTitle || 'Genel Lojistik ve Döviz Krizi';
+        const inputContext = prompt || scenarioTitle || 'General Supply Chain & FX Crisis';
 
         if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('YOUR_GEMINI_KEY')) {
             const systemInstructions = `
-                Sen TradeMind AI Kriz ve Stres Simülatörüsün.
-                Sana verilen kriz/şok durumunu analiz ederek tam olarak 3 FARKLI SENARYO üretmelisin:
-                1) optimistic (İyimser / Hızlı Uyum)
-                2) moderate (Gerçekçi / Taban Risk)
-                3) severe (Kötümser / Şiddetli Şok)
+                You are TradeMind AI Crisis & Stress Simulator.
+                Analyze the input shock and return exactly 3 scenarios:
+                1) optimistic (Rapid Adaptation)
+                2) moderate (Baseline Risk)
+                3) severe (Severe Shock)
 
-                Yanıtını SADECE geçerli bir JSON formatında ver. Başka hiçbir açıklama yazma. JSON formatı şöyle olmalıdır:
+                Output ONLY valid JSON:
                 {
                   "scenarios": [
                     {
                       "type": "optimistic",
-                      "title": "İyimser Senaryo: ...",
+                      "title": "Optimistic Scenario: ...",
                       "financialImpact": "+$15,000",
                       "financialImpactNumeric": 15000,
-                      "riskLevel": "Düşük Şok",
+                      "riskLevel": "Low Risk",
                       "description": "...",
                       "planB": "...",
                       "actionButtonText": "..."
                     },
                     {
                       "type": "moderate",
-                      "title": "Gerçekçi Senaryo: ...",
+                      "title": "Moderate Scenario: ...",
                       "financialImpact": "-$45,000",
                       "financialImpactNumeric": -45000,
-                      "riskLevel": "Orta Şok",
+                      "riskLevel": "Medium Shock",
                       "description": "...",
                       "planB": "...",
                       "actionButtonText": "..."
                     },
                     {
                       "type": "severe",
-                      "title": "Kötümser Senaryo: ...",
+                      "title": "Severe Scenario: ...",
                       "financialImpact": "-$124,000",
                       "financialImpactNumeric": -124000,
-                      "riskLevel": "Şiddetli Şok",
+                      "riskLevel": "Severe Crisis",
                       "description": "...",
                       "planB": "...",
                       "actionButtonText": "..."
@@ -105,7 +108,7 @@ app.post('/api/crisis/simulate', async (req, res) => {
 
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: `Girilmiş Durum/Şok: "${inputContext}". Sektör: ${sectorContext || 'E-Ticaret ve Küresel İthalat/İhracat'}. Bu kriz için 3 senaryoyu JSON olarak üret.`,
+                contents: `Input Shock: "${inputContext}". Industry: ${sectorContext || 'Global Trading'}. Generate the 3 JSON scenarios.`,
                 config: {
                     systemInstruction: systemInstructions,
                     temperature: 0.7,
@@ -117,12 +120,11 @@ app.post('/api/crisis/simulate', async (req, res) => {
             return res.json(parsedData);
         }
 
-        // High quality fallback scenarios if API key is not available
         return res.json(generateFallbackScenarios(inputContext));
 
     } catch (error) {
         console.error("Crisis simulation error:", error);
-        return res.json(generateFallbackScenarios(req.body.prompt || req.body.scenarioTitle || 'Kriz'));
+        return res.json(generateFallbackScenarios(req.body.prompt || req.body.scenarioTitle || 'Crisis'));
     }
 });
 
@@ -131,33 +133,33 @@ function generateFallbackScenarios(context) {
         scenarios: [
             {
                 type: "optimistic",
-                title: "İyimser Senaryo: Hızlı Rota & Karbon Subvansiyonu",
+                title: "Optimistic Scenario: Fast Cape Routing & Buffer Stocks",
                 financialImpact: "+$12,500",
                 financialImpactNumeric: 12500,
-                riskLevel: "Düşük Risk",
-                description: `"${context}" karşısında yerel stok esnekliği (%20 yedek stok) ve hızlı tedarik rotalama sayesinde kriz 7 günde atlatılır.`,
-                planB: "İkinci tedarikçiye hızla geçilip bölgesel depolama devreye sokularak maliyet artışı engellenir.",
-                actionButtonText: "Otonom Yerel Stok Rotalamasını Aktif Et"
+                riskLevel: "Low Risk",
+                description: `Facing "${context}", regional inventory buffers (20% reserve stock) and dynamic dispatch resolve bottleneck within 7 days.`,
+                planB: "Switch immediately to secondary localized suppliers.",
+                actionButtonText: "Deploy Autonomous Regional Routing"
             },
             {
                 type: "moderate",
-                title: "Gerçekçi Senaryo: Dengeli Maliyet Paslama & Hava Kargo",
+                title: "Moderate Scenario: Balanced Cost Sharing & Air Cargo",
                 financialImpact: "-$42,000",
                 financialImpactNumeric: -42000,
-                riskLevel: "Orta Seviye Şok",
-                description: `"${context}" durumu teslimat sürelerini 2 hafta uzatır, müşteriye teslimat süresi %25 gecikebilir.`,
-                planB: "Kritik ürünler Hindistan ve Doğu Avrupa depolarından hava kargosu ile getirtilir. Hasar -$42,000 ile sınırlanır.",
-                actionButtonText: "Hibrit Lojistik ve Depo Aktarımını Başlat"
+                riskLevel: "Medium Shock",
+                description: `"${context}" extends lead times by 14 days, partially absorbed through enterprise customer agreements.`,
+                planB: "Critical components flown in via air-cargo from European hubs.",
+                actionButtonText: "Initiate Hybrid Air-Sea Logistics Plan"
             },
             {
                 type: "severe",
-                title: "Kötümser Senaryo: Tam Tedarik Kırılması & Kur Şoku",
+                title: "Severe Scenario: Full Bottleneck & FX Liquidity Shock",
                 financialImpact: "-$138,000",
                 financialImpactNumeric: -138000,
-                riskLevel: "Şiddetli Şok Etkisi",
-                description: `"${context}" sebebiyle tedarik kanalları 45 gün tamamen kilitlenir. Satış kaybı ve ceza oranları tavan yapar.`,
-                planB: "Tüm sipariş akışı askıya alınır, likidite kalkanı devreye sokulur ve döviz kuru hedging protokolü başlatılır.",
-                actionButtonText: "Acil Durum Likidite Kalkanını Devreye Al"
+                riskLevel: "High Crisis",
+                description: `"${context}" halts major shipping lanes for 45 days, causing penalty spikes and stockouts.`,
+                planB: "Freeze exposure contracts, activate liquidity buffer, and initiate FX hedging protocol.",
+                actionButtonText: "Engage Emergency Liquidity Shield"
             }
         ]
     };

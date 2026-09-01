@@ -2,24 +2,18 @@ import React, { useState } from 'react';
 import './index.css';
 import Sidebar from './components/Sidebar';
 import Topnav from './components/Topnav';
-import Dashboard from './components/Dashboard';
-import Chatbot from './components/Chatbot';
+import ChatContainer from './components/chat/ChatContainer';
+import RightSidebar from './components/layout/RightSidebar';
 import Landing from './Landing';
 import Auth from './Auth';
 import SuperAdmin from './SuperAdmin';
-import GreenTrade from './components/GreenTrade';
-import Arbitrage from './components/Arbitrage';
 import Settings from './components/Settings';
-import LegalShield from './components/LegalShield';
-import CrisisSimulator from './components/CrisisSimulator';
-import Trends from './components/Trends';
-import Crypto from './components/Crypto';
-import Finance from './components/Finance';
 
 function App() {
   const [viewState, setViewState] = useState('landing'); // 'landing', 'auth', 'app'
-  const [activeMenu, setActiveMenu] = useState('dashboard');
-  const [currentUser, setCurrentUser] = useState(null);
+  const [activeMenu, setActiveMenu] = useState('chat');
+  const [currentUser, setCurrentUser] = useState({ name: 'Trader Pro', role: 'Enterprise' });
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
   if (viewState === 'landing') {
     return <Landing onLogin={() => setViewState('auth')} onSuperAdmin={() => setViewState('super_admin')} />;
@@ -27,7 +21,7 @@ function App() {
 
   if (viewState === 'auth') {
     return <Auth onLoginSuccess={(user) => {
-      setCurrentUser(user);
+      setCurrentUser(user || { name: 'Trader Pro' });
       setViewState('app');
     }} />;
   }
@@ -38,21 +32,35 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Left Sidebar Navigation */}
       <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
-      <div className="main-content">
-        <Topnav user={currentUser} />
-        {activeMenu === 'dashboard' && <Dashboard />}
-        {/* Placeholder components for other menus */}
-        {activeMenu === 'crisis' && <CrisisSimulator />}
-        {activeMenu === 'legal' && <LegalShield />}
-        {activeMenu === 'finance' && <Finance />}
-        {activeMenu === 'green' && <GreenTrade />}
-        {activeMenu === 'trends' && <Trends />}
-        {activeMenu === 'crypto' && <Crypto />}
-        {activeMenu === 'arbitrage' && <Arbitrage />}
-        {activeMenu === 'settings' && <Settings />}
+
+      {/* Main Center & Right Container */}
+      <div className="main-content chat-first-layout">
+        <Topnav 
+          user={currentUser} 
+          onToggleRightPanel={() => setIsRightSidebarOpen(!isRightSidebarOpen)} 
+          isRightPanelOpen={isRightSidebarOpen}
+        />
+
+        <div className="workspace-body">
+          {/* Central Conversational Timeline (Primary Focus) */}
+          {activeMenu === 'chat' && <ChatContainer />}
+
+          {/* Standalone Settings if navigated */}
+          {activeMenu === 'settings' && (
+            <div className="legacy-settings-wrapper">
+              <Settings />
+            </div>
+          )}
+
+          {/* Right Collapsible Live Market Watchlist & Economic Indicators */}
+          <RightSidebar 
+            isOpen={isRightSidebarOpen} 
+            onToggle={() => setIsRightSidebarOpen(!isRightSidebarOpen)} 
+          />
+        </div>
       </div>
-      <Chatbot />
     </div>
   );
 }
