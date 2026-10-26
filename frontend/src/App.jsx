@@ -8,15 +8,37 @@ import Landing from './Landing';
 import Auth from './Auth';
 import SuperAdmin from './SuperAdmin';
 import Settings from './components/Settings';
+import DemoConfirmPage from './components/DemoConfirmPage';
+import SsoCallbackPage from './components/SsoCallbackPage';
+
+const resolveInitialView = () => {
+  if (window.location.pathname.startsWith('/demo/confirm')) return 'demo_confirm';
+  if (window.location.pathname === '/sso/callback') return 'sso_callback';
+  return 'landing';
+};
 
 function App() {
-  const [viewState, setViewState] = useState('landing'); // 'landing', 'auth', 'app'
+  const [viewState, setViewState] = useState(resolveInitialView); // 'landing', 'auth', 'app'
   const [activeMenu, setActiveMenu] = useState('chat');
   const [currentUser, setCurrentUser] = useState({ name: 'Trader Pro', role: 'Enterprise' });
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
   if (viewState === 'landing') {
     return <Landing onLogin={() => setViewState('auth')} onSuperAdmin={() => setViewState('super_admin')} />;
+  }
+
+  if (viewState === 'demo_confirm') {
+    return <DemoConfirmPage onLoginSuccess={(user) => {
+      setCurrentUser(user || { name: 'Demo Yönetici' });
+      setViewState('app');
+    }} />;
+  }
+
+  if (viewState === 'sso_callback') {
+    return <SsoCallbackPage onLoginSuccess={(user) => {
+      setCurrentUser(user || { name: 'Enterprise User' });
+      setViewState('app');
+    }} />;
   }
 
   if (viewState === 'auth') {

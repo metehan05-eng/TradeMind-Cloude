@@ -1,9 +1,7 @@
-import YahooFinance from 'yahoo-finance2';
+import yahooFinance from 'yahoo-finance2';
 import { MarketQuote, HistoricalChartResult, HistoricalChartPoint } from '../types/market';
 import { marketCache, chartCache } from '../services/cacheService';
 
-// Initialize YahooFinance instance
-const yahooFinance = new YahooFinance();
 
 export const normalizeSymbol = (rawSymbol: string): string => {
   let sym = rawSymbol.trim().toUpperCase();

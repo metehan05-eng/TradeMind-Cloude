@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { supabase } from './supabaseClient';
-import { Mail, Lock, ArrowRight, TrendingUp } from 'lucide-react';
+import { Mail, Lock, ArrowRight, TrendingUp, ShieldCheck, Building2 } from 'lucide-react';
+import { api, ApiError, storeSession } from './lib/apiClient';
+import DemoRequestForm from './components/DemoRequestForm';
+
+const FREE_EMAIL_DOMAINS = [
+  'gmail.com', 'googlemail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
+  'live.com', 'icloud.com', 'me.com', 'protonmail.com', 'proton.me',
+  'yandex.com', 'mail.ru', 'zoho.com', 'aol.com'
+];
 
 const Auth = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
@@ -9,52 +16,60 @@ const Auth = ({ onLoginSuccess }) => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPass, setIsFocusedPass] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'apply'
+  const [authMode, setAuthMode] = useState('login');
+  const [ssoDiscovery, setSsoDiscovery] = useState(null);
 
-  // Block free email providers
-  const freeEmailDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'];
+  const validateCorporateEmail = () => {
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (!domain || FREE_EMAIL_DOMAINS.includes(domain)) {
+      setErrorMsg('TradeMind kapalı devre bir B2B sistemidir. Lütfen kurumsal şirket e-postanızı kullanın.');
+      return false;
+    }
+    return true;
+  };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const discoverSso = async () => {
+    if (!email.includes('@') || !validateCorporateEmail()) return;
+    try {
+      const discovery = await api.discoverSso(email);
+      if (discovery.mode === 'blocked') {
+        setErrorMsg(discovery.message);
+        return;
+      }
+      setSsoDiscovery(discovery.mode === 'sso' ? discovery : null);
+    } catch {
+      setSsoDiscovery(null);
+    }
+  };
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    if (!validateCorporateEmail()) return;
     setLoading(true);
     setErrorMsg(null);
 
-    const emailDomain = email.split('@')[1];
-    if (freeEmailDomains.includes(emailDomain)) {
-      setErrorMsg("TradeMind kapalı devre bir B2B sistemidir. Lütfen sadece onaylı kurumsal (.com, .net gibi) şirket e-postanızı kullanın.");
+    try {
+      const session = await api.login({ email, password });
+      storeSession(session);
+      onLoginSuccess({
+        ...session.user,
+        name: session.user.fullName,
+        tenant: session.tenant,
+        rbac: session.rbac
+      });
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : 'TradeMind backend servisine ulaşılamadı. Lütfen servisin çalıştığını kontrol edin.';
+      setErrorMsg(message);
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    // Test Account Injector
-    if (email === 'demo@techtrend.com' && password === 'admin') {
-      setTimeout(() => {
-        onLoginSuccess({ email: 'demo@techtrend.com', name: 'TechTrend E-Ticaret' });
-      }, 800);
-      return;
-    }
+  };
 
-    // Default mock failure for wrong accounts
-    if (supabase.supabaseUrl === 'https://YOUR_SUPABASE_PROJECT_URL.supabase.co') {
-      setTimeout(() => {
-        setErrorMsg("Böyle bir kurumsal hesap bulunamadı veya şifre hatalı.");
-        setLoading(false);
-      }, 500);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setErrorMsg(error.message);
-      setLoading(false);
-    } else {
-      // If connected to real supabase, you would fetch company info here
-      onLoginSuccess({ email: data.user.email, name: 'Kurumsal Şirket' });
-    }
+  const continueWithSso = () => {
+    if (ssoDiscovery?.startUrl) window.location.href = ssoDiscovery.startUrl;
   };
 
   return (
@@ -65,7 +80,7 @@ const Auth = ({ onLoginSuccess }) => {
             <TrendingUp size={24} />
           </div>
           <h2 style={{ marginBottom: '8px' }}>TradeMind AI</h2>
-          <p style={{ color: 'var(--text-muted)' }}>İşletme paneline giriş yapın</p>
+          <p style={{ color: 'var(--text-muted)' }}>Kurumsal işletme paneline giriş yapın</p>
         </div>
 
         {authMode === 'login' ? (
@@ -73,37 +88,46 @@ const Auth = ({ onLoginSuccess }) => {
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className={`auth-input-group ${isFocusedEmail ? 'focused' : ''}`}>
                 <Mail size={20} className="text-muted" />
-                <input 
-                  type="email" 
-                  className="auth-input" 
-                  placeholder="Kurumsal Şirket E-postası" 
+                <input
+                  type="email"
+                  className="auth-input"
+                  placeholder="Kurumsal Şirket E-postası"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(event) => { setEmail(event.target.value); setSsoDiscovery(null); }}
                   onFocus={() => setIsFocusedEmail(true)}
-                  onBlur={() => setIsFocusedEmail(false)}
+                  onBlur={() => { setIsFocusedEmail(false); discoverSso(); }}
                 />
               </div>
 
+              {ssoDiscovery?.mode === 'sso' && (
+                <div className="sso-banner">
+                  <ShieldCheck size={20} />
+                  <div>
+                    <strong>{ssoDiscovery.idpName} ile kurumsal giriş</strong>
+                    <p>Bu domain {ssoDiscovery.idpName} Identity Provider'ına yönlendirilir.</p>
+                  </div>
+                  <button type="button" onClick={continueWithSso} className="mini-btn">
+                    SSO ile Devam
+                  </button>
+                </div>
+              )}
+
               <div className={`auth-input-group ${isFocusedPass ? 'focused' : ''}`}>
                 <Lock size={20} className="text-muted" />
-                <input 
-                  type="password" 
-                  className="auth-input" 
-                  placeholder="Güvenlik Şifresi" 
+                <input
+                  type="password"
+                  className="auth-input"
+                  placeholder="Güvenlik Şifresi"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
                   onFocus={() => setIsFocusedPass(true)}
                   onBlur={() => setIsFocusedPass(false)}
                 />
               </div>
 
-              {errorMsg && (
-                <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '4px' }}>
-                  {errorMsg}
-                </div>
-              )}
+              {errorMsg && <div className="demo-error">{errorMsg}</div>}
 
               <button type="submit" className="auth-btn neon-border-blue" disabled={loading} style={{ border: 'none' }}>
                 {loading ? 'Sistem Doğrulanıyor...' : 'Merkez Panele Bağlan'} <ArrowRight size={18} />
@@ -111,7 +135,7 @@ const Auth = ({ onLoginSuccess }) => {
             </form>
 
             <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px dashed var(--accent-blue)', padding: '16px', borderRadius: '8px', marginTop: '16px', fontSize: '0.85rem', textAlign: 'left' }}>
-              <p style={{ color: 'white', marginBottom: '8px', fontWeight: 'bold' }}>🧪 Test Hesabı (Onaylı Şirket)</p>
+              <p style={{ color: 'white', marginBottom: '8px', fontWeight: 'bold' }}><Building2 size={14} /> Test Hesabı (Onaylı Şirket)</p>
               <p style={{ color: 'var(--text-muted)' }}>E-Posta: <code style={{ background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px' }}>demo@techtrend.com</code></p>
               <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Şifre: <code style={{ background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px' }}>admin</code></p>
             </div>
@@ -120,8 +144,9 @@ const Auth = ({ onLoginSuccess }) => {
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                 İşletmeniz TradeMind ağında yok mu?
               </p>
-              <button 
-                onClick={() => setAuthMode('apply')} 
+              <button
+                type="button"
+                onClick={() => setAuthMode('apply')}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontWeight: 'bold', marginTop: '8px', cursor: 'pointer' }}
               >
                 Kurum Olarak Başvuru Yapın
@@ -129,19 +154,21 @@ const Auth = ({ onLoginSuccess }) => {
             </div>
           </>
         ) : (
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-              TradeMind AI sadece onaylı ihracatçılar ve global ölçeği olan işletmeler içindir. Başvurunuz "Super Admin" ekibimizce kurumsal vergi numaralarınız üzerinden denetlendikten sonra aktif edilecektir.
+          <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              TradeMind AI yalnızca doğrulanmış kurumsal hesaplar içindir. Demo talebiniz KYB ve domain
+              kontrolünden geçtikten sonra sandbox hesabınız otomatik oluşturulur.
             </p>
-            <button 
-                onClick={() => setAuthMode('login')} 
-                style={{ background: 'none', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', padding: '10px', borderRadius: '8px', fontWeight: 'bold', marginTop: '8px', cursor: 'pointer' }}
-              >
-                Giriş Ekranına Dön
+            <DemoRequestForm source="auth" compact />
+            <button
+              type="button"
+              onClick={() => setAuthMode('login')}
+              style={{ background: 'none', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Giriş Ekranına Dön
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

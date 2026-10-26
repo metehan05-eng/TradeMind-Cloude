@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowRight, Globe, TrendingUp, ShieldCheck, Zap, Database, Key } from 'lucide-react';
+import { ArrowRight, Globe, TrendingUp, ShieldCheck, Zap, Database, Key, Building2 } from 'lucide-react';
+import DemoRequestForm from './components/DemoRequestForm';
 
 const Landing = ({ onLogin, onSuperAdmin }) => {
   return (
@@ -14,6 +15,7 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
           <a href="#features" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Özellikler</a>
           <a href="#integration" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Entegrasyon</a>
           <a href="#pricing" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Fiyatlandırma</a>
+          <a href="#demo" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>Kurumsal Demo</a>
           <button onClick={onLogin} className="neon-border-blue" style={{ background: 'var(--accent-blue)', color: 'white', padding: '10px 24px', borderRadius: 'var(--radius-sm)', border: 'none', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.3s' }}>
             Panele Giriş <ArrowRight size={18} />
           </button>
@@ -32,9 +34,9 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
           <button onClick={onLogin} className="neon-border-purple" style={{ background: 'white', color: 'black', padding: '14px 32px', borderRadius: 'var(--radius-md)', border: 'none', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.3s' }}>
             Hemen Başlayın
           </button>
-          <button className="glass-panel" style={{ color: 'white', padding: '14px 32px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.3s' }}>
-            Demoyu İncele
-          </button>
+          <a href="#demo" className="glass-panel" style={{ color: 'white', padding: '14px 32px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.3s', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            Demoyu İncele <ArrowRight size={18} />
+          </a>
         </div>
       </header>
 
@@ -59,6 +61,25 @@ const Landing = ({ onLogin, onSuperAdmin }) => {
             <Zap size={32} className="neon-text-green" style={{ marginBottom: '16px' }} />
             <h3 style={{ marginBottom: '12px' }}>CSV / Excel Yükleme</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Eski nesil sistemler kullanıyorsanız, akıllı veritabanı eşleştiricisine CSV atın. Formattaki hataları yapay zeka onarsın.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Institutional Demo Request */}
+      <section id="demo" style={{ padding: '80px 24px', background: 'radial-gradient(circle at 50% 0%, rgba(139,92,246,0.16), transparent 60%)' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <span className="badge success" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', marginBottom: '16px' }}>
+              <Building2 size={14} /> Institutional Access
+            </span>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>Kurum Olarak Başvuru Yapın</h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.7 }}>
+              Onaylı kurumsal demo hesabınız, örnek NVDA, BTC/USD ve Brent Oil analitiği ile birlikte
+              e-posta onayınızın ardından otomatik oluşturulur.
+            </p>
+          </div>
+          <div className="glass-panel" style={{ padding: '32px', border: '1px solid rgba(139, 92, 246, 0.28)' }}>
+            <DemoRequestForm source="landing" />
           </div>
         </div>
       </section>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Key, FileText, Download, Briefcase, Link, Database, CheckCircle } from 'lucide-react';
+import IntegrationHub from './IntegrationHub';
 
 const Settings = () => {
   const [tradeSector, setTradeSector] = useState('E-Ticaret');
@@ -141,6 +142,8 @@ const Settings = () => {
           </button>
         </div>
       </div>
+
+      <IntegrationHub />
 
     </div>
   );
