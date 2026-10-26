@@ -32,15 +32,26 @@ const allowedOrigins = (process.env.CORS_ORIGINS ?? env.appPublicUrl)
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const isDev = env.nodeEnv !== 'production';
+
 app.disable('x-powered-by');
 app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      if (!origin) return callback(null, true);
+      if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (isDev) {
+        return callback(null, true);
+      }
       return callback(new Error('Origin not allowed by CORS'));
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Admin-Key', 'X-Request-ID']
   })
 );
 
